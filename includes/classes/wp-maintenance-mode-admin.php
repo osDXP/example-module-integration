@@ -9,7 +9,7 @@ if (!class_exists('WP_Maintenance_Mode_Admin')) {
         protected $plugin_settings;
         protected $plugin_default_settings;
         protected $plugin_basename;
-        protected $plugin_screen_hook_suffix = 'module-settings_page_wp-maintenance-mode';
+        protected $plugin_screen_hook_suffix = null;
         private $dismissed_notices_key = 'wpmm_dismissed_notices';
 
         private function __construct() {
@@ -24,7 +24,7 @@ if (!class_exists('WP_Maintenance_Mode_Admin')) {
             add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
 
             // Add the options page and menu item.
-            add_filter('osdxp_add_module_settings_page', array($this, 'add_plugin_menu'));
+            add_action('admin_menu', array($this, 'add_plugin_menu'));
 
             // Add an action link pointing to the options page
             if (is_multisite() && is_plugin_active_for_network($this->plugin_basename)) {
@@ -97,7 +97,7 @@ if (!class_exists('WP_Maintenance_Mode_Admin')) {
                 wp_enqueue_script($this->plugin_slug . '-admin-chosen', WPMM_JS_URL . 'chosen.jquery' . WPMM_ASSETS_SUFFIX . '.js', array(), WP_Maintenance_Mode::VERSION);
                 wp_localize_script($this->plugin_slug . '-admin-script', 'wpmm_vars', array(
                     'ajax_url' => admin_url('admin-ajax.php'),
-                    'plugin_url' => admin_url('admin.php?page=' . $this->plugin_slug)
+                    'plugin_url' => admin_url('options-general.php?page=' . $this->plugin_slug)
                 ));
             }
 
@@ -161,8 +161,8 @@ if (!class_exists('WP_Maintenance_Mode_Admin')) {
 
                 // delete all subscribers
                 $wpdb->query("DELETE FROM {$wpdb->prefix}wpmm_subscribers");
-
-				$message = sprintf(_nx('You have %d subscriber', 'You have %s subscribers', 0, 'ajax response',$this->plugin_slug), 0);
+		
+				$message = sprintf(_nx('You have %d subscriber', 'You have %s subscribers', 0, 'ajax response',$this->plugin_slug), 0);		
                 wp_send_json_success($message);
             } catch (Exception $ex) {
                 wp_send_json_error($ex->getMessage());
@@ -218,17 +218,10 @@ if (!class_exists('WP_Maintenance_Mode_Admin')) {
          *
          * @since 2.0.0
          */
-        public function add_plugin_menu($pages) {
-            $page = [
-                'function' => array($this, 'display_plugin_settings'),
-                'menu_slug'=> $this->plugin_slug,
-                'page_title'=> esc_html__('WP Maintenance Mode', $this->plugin_slug),
-                'menu_title'=> esc_html__('WP Maintenance Mode', $this->plugin_slug),
-                'network' => 'no' //yes for network only, both for both, other value or missing to only show on wp-admin dashboard
-            ];
-            $pages[] = $page;
-
-            return $pages;
+        public function add_plugin_menu() {
+            $this->plugin_screen_hook_suffix = add_options_page(
+                    __('WP Maintenance Mode', $this->plugin_slug), __('WP Maintenance Mode', $this->plugin_slug), 'manage_options', $this->plugin_slug, array($this, 'display_plugin_settings')
+            );
         }
 
         /**
@@ -536,7 +529,7 @@ if (!class_exists('WP_Maintenance_Mode_Admin')) {
         public function add_settings_link($links) {
             return array_merge(
                     array(
-                'wpmm_settings' => '<a href="' . admin_url('admin.php?page=' . $this->plugin_slug) . '">' . __('Settings', $this->plugin_slug) . '</a>'
+                'wpmm_settings' => '<a href="' . admin_url('options-general.php?page=' . $this->plugin_slug) . '">' . __('Settings', $this->plugin_slug) . '</a>'
                     ), $links
             );
         }
@@ -555,7 +548,7 @@ if (!class_exists('WP_Maintenance_Mode_Admin')) {
                 if (array_key_exists('general', $this->plugin_settings) && $this->plugin_settings['general']['status'] == 1 && $this->plugin_settings['general']['notice'] == 1) {
                     $notices['is_activated'] = array(
                         'class' => 'error',
-                        'msg' => sprintf(__('The Maintenance Mode is <strong>active</strong>. Please don\'t forget to <a href="%s">deactivate</a> as soon as you are done.', $this->plugin_slug), admin_url('admin.php?page=' . $this->plugin_slug))
+                        'msg' => sprintf(__('The Maintenance Mode is <strong>active</strong>. Please don\'t forget to <a href="%s">deactivate</a> as soon as you are done.', $this->plugin_slug), admin_url('options-general.php?page=' . $this->plugin_slug))
                     );
                 }
 
@@ -679,10 +672,10 @@ if (!class_exists('WP_Maintenance_Mode_Admin')) {
                 return __("No privacy features detected for your WordPress version. Update WordPress to get this field automatically filled in or type in the URL that points to your privacy policy page.", $this->plugin_slug);
             }
         }
-
-
-
-
+    
+    
+    
+    
     }
 
 }

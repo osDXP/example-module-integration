@@ -46,14 +46,6 @@ define('WPMM_AUTHOR_UTM', '?utm_source=wpplugin&utm_medium=wpmaintenance');
 define('WPMM_ASSETS_SUFFIX', (defined('SCRIPT_DEBUG') && SCRIPT_DEBUG) ? '' : '.min');
 
 /**
- * DXP-Related DEFINES
- */
-define('WPMM_PLUGIN_FILE', WPMM_PATH . 'wp-maintenance-mode.php');
-define('WPMM_PLUGIN_NAME', 'WP Maintenance Mode');
-define('WPMM_PLUGIN_SLUG', 'wp-maintenance-mode');
-define('WPMM_PLUGIN_BASENAME', plugin_basename(__FILE__));
-
-/**
  * FUNCTIONS
  */
 require_once(WPMM_FUNCTIONS_PATH . 'hooks.php');
@@ -61,12 +53,6 @@ require_once(WPMM_FUNCTIONS_PATH . 'helpers.php');
 if (is_multisite() && !function_exists('is_plugin_active_for_network')) {
 	require_once( ABSPATH . '/wp-admin/includes/plugin.php' );
 }
-
-/**
- * DXP content
- */
-require_once(WPMM_FUNCTIONS_PATH . 'dxp.php');
-
 
 /**
  * FRONTEND
