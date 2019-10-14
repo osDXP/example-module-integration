@@ -1,0 +1,1 @@
+Example integration of an osdxp module using WP Maintenance Mode Plugin
